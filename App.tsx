@@ -1,21 +1,47 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ThemeProvider } from '@shopify/restyle';
+
+import { Navigator } from "./src/routes";
+import { darkTheme, theme } from "./src/components";
+import { useCachedResources, useColorScheme } from './src/hooks';
+
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { enableScreens } from 'react-native-screens';
+import { applyMiddleware, combineReducers, createStore } from 'redux';
+import { Provider } from 'react-redux';
+import ReduxTunk from 'redux-thunk';
+
+enableScreens();
+
+const fakeReducer = (state = {}, action: any) => {
+  switch (action) {
+
+  }
+  return state;
+};
+
+const rootReducer = combineReducers({
+  fake: fakeReducer
+});
+
+const store = createStore(rootReducer, applyMiddleware(ReduxTunk));
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+  const isLoadingComplete = useCachedResources();
+  const colorScheme = useColorScheme();
+  console.log(colorScheme);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  if (!isLoadingComplete) {
+    return null;
+  } else {
+    return (
+      <SafeAreaProvider>
+        <ThemeProvider theme={colorScheme === 'dark' ? darkTheme : theme}>
+          <Provider store={store}>
+            <Navigator colorScheme={colorScheme} />
+          </Provider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    );
+  }
+}
